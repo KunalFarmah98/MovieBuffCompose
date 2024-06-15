@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -5,6 +8,9 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.compose)
 }
+
+val localProperties = Properties()
+localProperties.load(FileInputStream(rootProject.file("local.properties")))
 
 android {
     namespace = "com.apps.kunalfarmah.moviebuffcompose"
@@ -21,6 +27,11 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+    }
+
+    defaultConfig{
+        resValue("string", "api_key", localProperties["apiKey"].toString())
+        buildConfigField("String", "API_KEY", localProperties["apiKey"].toString())
     }
 
     buildTypes {
