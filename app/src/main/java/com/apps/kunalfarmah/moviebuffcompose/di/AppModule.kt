@@ -1,7 +1,7 @@
 package com.apps.kunalfarmah.moviebuffcompose.di
 
 import androidx.room.Room
-import com.apps.kunalfarmah.moviebuffcompose.database.FavouritesDatabase
+import com.apps.kunalfarmah.moviebuffcompose.database.WatchlistDatabase
 import com.apps.kunalfarmah.moviebuffcompose.database.MoviesDatabase
 import com.apps.kunalfarmah.moviebuffcompose.repository.MoviesRepository
 import com.apps.kunalfarmah.moviebuffcompose.retrofit.MovieRetrofit
@@ -52,7 +52,7 @@ val roomModule = module {
     single{
         Room.databaseBuilder(
             androidContext(),
-            FavouritesDatabase::class.java, "favourites.db"
+            WatchlistDatabase::class.java, "watchlist.db"
         ).build()
     }
 
