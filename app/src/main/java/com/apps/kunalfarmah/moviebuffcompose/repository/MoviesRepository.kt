@@ -23,9 +23,19 @@ class MoviesRepository(
 
     suspend fun fetchPopularMovies() : Flow<List<Movie>> {
         return if (Util.isNetworkAvailable()) {
-            val response = movieRetrofit.getPopularMovies().results
-            response.map { moviesDao.upsert(mapToEntity(it)) }
-            flowOf(response)
+            try{
+                val response = movieRetrofit.getPopularMovies().results
+                if(response.isEmpty()){
+                    flowOf(moviesDao.getAllMovies().map { mapFromEntity(it) })
+                }
+                else {
+                    response.map { moviesDao.upsert(mapToEntity(it)) }
+                    flowOf(response)
+                }
+            }
+            catch (e: Exception){
+                flowOf(moviesDao.getAllMovies().map { mapFromEntity(it) })
+            }
         } else {
             flowOf(moviesDao.getAllMovies().map { mapFromEntity(it) })
         }
@@ -33,9 +43,19 @@ class MoviesRepository(
 
     suspend fun fetchTopRatedMovies() : Flow<List<Movie>> {
         return if (Util.isNetworkAvailable()) {
-            val response = movieRetrofit.getTopRatedMovies().results
-            response.map { moviesDao.upsert(mapToEntity(it)) }
-            flowOf(response)
+            try{
+                val response = movieRetrofit.getTopRatedMovies().results
+                if(response.isEmpty()){
+                    flowOf(moviesDao.getAllMovies().map { mapFromEntity(it) })
+                }
+                else {
+                    response.map { moviesDao.upsert(mapToEntity(it)) }
+                    flowOf(response)
+                }
+            }
+            catch (e: Exception){
+                flowOf(moviesDao.getAllMovies().map { mapFromEntity(it) })
+            }
         } else {
             flowOf(moviesDao.getAllMovies().map { mapFromEntity(it) })
         }
@@ -52,46 +72,97 @@ class MoviesRepository(
 
     suspend fun getMovieDetails(id: String): Flow<MovieDetailsResponse?>? {
         return if(Util.isNetworkAvailable()) {
-            val response = movieRetrofit.getDetails(id)
-            PreferenceManager.putValue(id + "_details", moshi.adapter(MovieDetailsResponse::class.java).toJson(response))
-            flowOf(response)
-        } else{
-            val cache = PreferenceManager.getValue(id + "_details", "")?.first() as String
-            if(cache.isNotEmpty())
-                 flowOf(moshi.adapter(MovieDetailsResponse::class.java).fromJson(cache))
-            else
-                null
+            try{
+                val response = movieRetrofit.getDetails(id)
+                if(response == null){
+                    getDetailsCache(id)
+                }
+                else{
+                    PreferenceManager.putValue(
+                        id + "_details",
+                        moshi.adapter(MovieDetailsResponse::class.java).toJson(response)
+                    )
+                    flowOf(response)
+                }
+            }
+            catch (e: Exception){
+                getDetailsCache(id)
+            }
+        } else {
+            getDetailsCache(id)
         }
+    }
+
+    private suspend fun getDetailsCache(id: String): Flow<MovieDetailsResponse?>? {
+        val cache = PreferenceManager.getValue(id + "_details", "")?.first() as String
+        return if(cache.isNotEmpty())
+            flowOf(moshi.adapter(MovieDetailsResponse::class.java).fromJson(cache))
+        else
+            null
     }
 
     suspend fun getMovieImages(id: String): Flow<List<PosterItem?>?>? {
         return if(Util.isNetworkAvailable()) {
-            val response = movieRetrofit.getImages(id, Constants.API_KEY)
-            PreferenceManager.putValue(id + "_images", moshi.adapter(ImagesResponse::class.java).toJson(response))
-            flowOf(response.posters)
+            try {
+                val response = movieRetrofit.getImages(id, Constants.API_KEY)
+                if(response == null){
+                    getImagesCache(id)
+                }
+                else {
+                    PreferenceManager.putValue(
+                        id + "_images",
+                        moshi.adapter(ImagesResponse::class.java).toJson(response)
+                    )
+                    flowOf(response.posters)
+                }
+            }
+            catch (e:Exception){
+                getImagesCache(id)
+            }
         }
         else{
-            val cache = PreferenceManager.getValue(id + "_images", "")?.first() as String
-            if(cache.isNotEmpty())
-                 flowOf(moshi.adapter(ImagesResponse::class.java).fromJson(cache)?.posters)
-            else
-                null
+           getImagesCache(id)
         }
+    }
+
+    private suspend fun getImagesCache(id: String): Flow<List<PosterItem?>?>? {
+        val cache = PreferenceManager.getValue(id + "_images", "")?.first() as String
+        return if(cache.isNotEmpty())
+            flowOf(moshi.adapter(ImagesResponse::class.java).fromJson(cache)?.posters)
+        else
+            null
     }
 
     suspend fun getMovieReviews(id: String): Flow<List<ReviewItem>?>? {
         return if(Util.isNetworkAvailable()) {
-            val response = movieRetrofit.getReviews(id, Constants.API_KEY)
-            PreferenceManager.putValue(id + "_reviews", moshi.adapter(ReviewResponse::class.java).toJson(response))
-            flowOf(response.results)
+            try {
+                val response = movieRetrofit.getReviews(id, Constants.API_KEY)
+                if(response.results.isEmpty()){
+                    getReviewsCache(id)
+                }
+                else {
+                    PreferenceManager.putValue(
+                        id + "_reviews",
+                        moshi.adapter(ReviewResponse::class.java).toJson(response)
+                    )
+                    flowOf(response.results)
+                }
+            }
+            catch (e:Exception){
+                getReviewsCache(id)
+            }
         }
         else{
-            val cache = PreferenceManager.getValue(id + "_reviews", "")?.first() as String
-           if(cache.isNotEmpty())
-                flowOf(moshi.adapter(ReviewResponse::class.java).fromJson(cache)?.results)
-            else
-                null
+            getReviewsCache(id)
         }
+    }
+
+    private suspend fun getReviewsCache(id: String): Flow<List<ReviewItem>?>? {
+        val cache = PreferenceManager.getValue(id + "_reviews", "")?.first() as String
+        return if(cache.isNotEmpty())
+            flowOf(moshi.adapter(ReviewResponse::class.java).fromJson(cache)?.results)
+        else
+            null
     }
     
     private fun mapToEntity(obj: Movie): MovieEntity {
