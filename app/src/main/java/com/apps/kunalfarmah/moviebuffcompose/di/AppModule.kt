@@ -7,6 +7,8 @@ import com.apps.kunalfarmah.moviebuffcompose.repository.MoviesRepository
 import com.apps.kunalfarmah.moviebuffcompose.retrofit.MovieRetrofit
 import com.apps.kunalfarmah.moviebuffcompose.util.Constants
 import com.apps.kunalfarmah.moviebuffcompose.viewmodel.MoviesViewModel
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
@@ -24,11 +26,15 @@ val appModule = module {
     }
 }
 
+
 val retrofitModule = module {
+    val moshi = Moshi.Builder()
+        .add(KotlinJsonAdapterFactory())
+        .build()
     single{
         Retrofit.Builder()
             .baseUrl(Constants.BASE_URL)
-            .addConverterFactory(MoshiConverterFactory.create())
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
             .client(OkHttpClient.Builder().build())
             .build()
             .create(MovieRetrofit::class.java)

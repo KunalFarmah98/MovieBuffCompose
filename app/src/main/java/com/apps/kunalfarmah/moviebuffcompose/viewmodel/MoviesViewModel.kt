@@ -6,7 +6,10 @@ import com.apps.kunalfarmah.moviebuffcompose.repository.MoviesRepository
 import com.apps.kunalfarmah.moviebuffcompose.retrofit.MovieDetailsResponse
 import com.apps.kunalfarmah.moviebuffcompose.retrofit.PosterItem
 import com.apps.kunalfarmah.moviebuffcompose.retrofit.ReviewItem
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
@@ -14,69 +17,65 @@ class MoviesViewModel(
     private val moviesRepository: MoviesRepository
 ) : ViewModel() {
 
-    private var _movies: Flow<List<Movie>> = flowOf(emptyList())
-    private var _movieDetails: Flow<MovieDetailsResponse> = flowOf()
-    private var _movieReviews: Flow<List<ReviewItem>> = flowOf(emptyList())
-    private var _movieImages: Flow<List<PosterItem>> = flowOf(emptyList())
+    private var _movies: MutableStateFlow<List<Movie>> = MutableStateFlow(emptyList())
+    private var _movieDetails: MutableStateFlow<MovieDetailsResponse?> = MutableStateFlow(null)
+    private var _movieReviews: MutableStateFlow<List<ReviewItem>> = MutableStateFlow(emptyList())
+    private var _movieImages: MutableStateFlow<List<PosterItem>> = MutableStateFlow(emptyList())
 
 
-    val movies: Flow<List<Movie>>
-        get() = _movies
+    val movies = _movies.asStateFlow()
 
-    val movieDetails:Flow<MovieDetailsResponse>
-        get() = _movieDetails
+    val movieDetails = _movieDetails.asStateFlow()
 
-    val movieReviews: Flow<List<ReviewItem>>
-        get() = _movieReviews
+    val movieReviews = _movieReviews.asStateFlow()
 
-    val movieImages: Flow<List<PosterItem>>
-        get() = _movieImages
+    val movieImages = _movieImages.asStateFlow()
 
 
 
 
-    fun fetchAllPopularMovies() {
-        viewModelScope.launch {
-            _movies = moviesRepository.fetchPopularMovies()
+    fun getPopularMovies() {
+        viewModelScope.launch(Dispatchers.IO){
+            _movies.value = moviesRepository.fetchPopularMovies()
         }
     }
 
 
-    fun fetchAllTopRatedMovies() {
-        viewModelScope.launch {
-            _movies = moviesRepository.fetchTopRatedMovies()
+    fun getTopRatedMovies() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _movies.value = moviesRepository.fetchTopRatedMovies()
         }
     }
 
     fun searchAllMovies(query:String){
-        viewModelScope.launch {
-            _movies = moviesRepository.searchMovies(query)
+        viewModelScope.launch(Dispatchers.IO) {
+            _movies.value = moviesRepository.searchMovies(query)
         }
     }
 
 
     fun getMovieDetail(id:String){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val response = moviesRepository.getMovieDetails(id)
             if(response != null){
-                _movieDetails = response as Flow<MovieDetailsResponse>
+                _movieDetails.value = response
             }
         }
     }
 
     fun getMovieReviews(id:String){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val response = moviesRepository.getMovieReviews(id)
             if(response!= null)
-                _movieReviews  = response as Flow<List<ReviewItem>>
+                _movieReviews.value  = response
         }
     }
 
     fun getMovieImages(id:String){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val response = moviesRepository.getMovieImages(id)
             if(response != null)
-                _movieImages = response as Flow<List<PosterItem>>
+                _movieImages.value = response
         }
     }
 
