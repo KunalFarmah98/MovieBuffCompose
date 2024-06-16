@@ -8,7 +8,7 @@ interface MovieRetrofit {
     @GET("movie/popular")
     suspend fun getPopularMovies(@Query("api_key") apiKey:String = Constants.API_KEY, @Query("page") page:Int = 1): MoviesResponse
 
-    @GET("movie/popular")
+    @GET("movie/top_rated")
     suspend fun getTopRatedMovies(@Query("api_key") apiKey:String = Constants.API_KEY, @Query("page") page:Int = 1): MoviesResponse
 
     @GET("search/movie")

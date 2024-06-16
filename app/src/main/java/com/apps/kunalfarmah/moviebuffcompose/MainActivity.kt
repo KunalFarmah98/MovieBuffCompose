@@ -46,6 +46,9 @@ fun MainScreen() {
             composable(NavigationItem.TopRated.route) {
                 MoviesScreen(navController = navController, viewModel = moviesViewModel, type = "topRated")
             }
+            composable(NavigationItem.Search.route) {
+                MoviesScreen(navController = navController, viewModel = moviesViewModel, type = "search")
+            }
             composable(NavigationItem.WatchList.route) {
                 WatchlistScreen(navController = navController, viewModel = moviesViewModel)
             }

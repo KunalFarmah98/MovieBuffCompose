@@ -17,13 +17,19 @@ class MoviesViewModel(
     private val moviesRepository: MoviesRepository
 ) : ViewModel() {
 
-    private var _movies: MutableStateFlow<List<Movie>> = MutableStateFlow(emptyList())
+    private var _popularMovies: MutableStateFlow<List<Movie>> = MutableStateFlow(emptyList())
+    private var _topRatedMovies: MutableStateFlow<List<Movie>> = MutableStateFlow(emptyList())
+    private var _searchedMovies: MutableStateFlow<List<Movie>> = MutableStateFlow(emptyList())
     private var _movieDetails: MutableStateFlow<MovieDetailsResponse?> = MutableStateFlow(null)
     private var _movieReviews: MutableStateFlow<List<ReviewItem>> = MutableStateFlow(emptyList())
     private var _movieImages: MutableStateFlow<List<PosterItem>> = MutableStateFlow(emptyList())
 
 
-    val movies = _movies.asStateFlow()
+    val popularMovies = _popularMovies.asStateFlow()
+
+    val topRatedMovies = _topRatedMovies.asStateFlow()
+
+    val searchedMovies = _searchedMovies.asStateFlow()
 
     val movieDetails = _movieDetails.asStateFlow()
 
@@ -36,20 +42,20 @@ class MoviesViewModel(
 
     fun getPopularMovies() {
         viewModelScope.launch(Dispatchers.IO){
-            _movies.value = moviesRepository.fetchPopularMovies()
+            _popularMovies.value = moviesRepository.fetchPopularMovies()
         }
     }
 
 
     fun getTopRatedMovies() {
         viewModelScope.launch(Dispatchers.IO) {
-            _movies.value = moviesRepository.fetchTopRatedMovies()
+            _topRatedMovies.value = moviesRepository.fetchTopRatedMovies()
         }
     }
 
     fun searchAllMovies(query:String){
         viewModelScope.launch(Dispatchers.IO) {
-            _movies.value = moviesRepository.searchMovies(query)
+            _searchedMovies.value = moviesRepository.searchMovies(query)
         }
     }
 
